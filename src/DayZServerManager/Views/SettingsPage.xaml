@@ -3,28 +3,32 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
         <StackPanel Margin="0,0,8,0">
-            <TextBlock Text="PARAMÈTRES" Style="{StaticResource PageTitle}" />
-            <TextBlock Text="Installation, redémarrages, démarrage et mises à jour automatiques." FontSize="14"
+            <TextBlock x:Name="TitleText" Text="LANCEMENT" Style="{StaticResource PageTitle}" />
+            <TextBlock x:Name="SubtitleText" FontSize="14" TextWrapping="Wrap"
                        Foreground="{StaticResource MutedBrush}" Margin="0,6,0,0" />
 
-            <!-- ===== Installation ===== -->
-            <Border Style="{StaticResource Card}" Margin="0,24,0,0">
-                <DockPanel>
-                    <Button DockPanel.Dock="Right" Content="Ouvrir l'installation" Style="{StaticResource PrimaryButton}"
-                            VerticalAlignment="Center" Margin="16,0,0,0" Click="Install_Click" />
-                    <StackPanel VerticalAlignment="Center">
-                        <TextBlock Text="INSTALLATION DU SERVEUR" Style="{StaticResource SectionTitle}" />
-                        <TextBlock x:Name="InstallInfo" Style="{StaticResource MutedText}" FontSize="13" Margin="0,8,0,0" />
-                    </StackPanel>
-                </DockPanel>
+            <!-- ===== Langue (Application) ===== -->
+            <Border x:Name="LanguageCard" Style="{StaticResource Card}" Margin="0,24,0,0">
+                <StackPanel>
+                    <TextBlock Text="LANGUE" Style="{StaticResource SectionTitle}" />
+                    <WrapPanel Margin="0,16,0,0">
+                        <RadioButton Content="Français" GroupName="lang" IsChecked="True" Style="{StaticResource ChipButton}" />
+                        <RadioButton Content="English (bientôt)" GroupName="lang" IsEnabled="False" Style="{StaticResource ChipButton}" />
+                    </WrapPanel>
+                    <TextBlock Style="{StaticResource MutedText}" Margin="0,10,0,0"
+                               Text="L'application n'existe qu'en français pour l'instant. L'anglais arrivera dans une prochaine mise à jour." />
+                </StackPanel>
             </Border>
 
-            <!-- ===== Redémarrages et lancement ===== -->
-            <Border Style="{StaticResource Card}" Margin="0,20,0,0">
+            <!-- ===== Redémarrages et lancement (Lancement) ===== -->
+            <Border x:Name="RestartCard" Style="{StaticResource Card}" Margin="0,24,0,0">
                 <StackPanel>
                     <TextBlock Text="REDÉMARRAGES ET LANCEMENT" Style="{StaticResource SectionTitle}" />
+                    <CheckBox x:Name="AutoStartServerToggle" Style="{StaticResource ToggleSwitch}" Margin="0,18,0,0"
+                              Content="Démarrer le serveur automatiquement à l'ouverture de l'application"
+                              Click="Options_Changed" />
                     <CheckBox x:Name="AutoRestartToggle" Content="Redémarrer le serveur tout seul en cas de crash"
-                              Style="{StaticResource ToggleSwitch}" Margin="0,18,0,0" Click="Options_Changed" />
+                              Style="{StaticResource ToggleSwitch}" Margin="0,14,0,0" Click="Options_Changed" />
                     <CheckBox x:Name="ScheduledToggle" Content="Redémarrage programmé"
                               Style="{StaticResource ToggleSwitch}" Margin="0,14,0,0" Click="Options_Changed" />
                     <WrapPanel Margin="0,12,0,0">
@@ -48,23 +52,20 @@
                 </StackPanel>
             </Border>
 
-            <!-- ===== Démarrage ===== -->
-            <Border Style="{StaticResource Card}" Margin="0,20,0,0">
+            <!-- ===== Démarrage (Application) ===== -->
+            <Border x:Name="StartupCard" Style="{StaticResource Card}" Margin="0,20,0,0">
                 <StackPanel>
                     <TextBlock Text="DÉMARRAGE" Style="{StaticResource SectionTitle}" />
                     <CheckBox x:Name="StartWithWindowsToggle" Style="{StaticResource ToggleSwitch}" Margin="0,18,0,0"
                               Content="Lancer Stryxhost Manager à l'ouverture de Windows (réduit près de l'horloge)"
                               Click="StartWithWindows_Click" />
-                    <CheckBox x:Name="AutoStartServerToggle" Style="{StaticResource ToggleSwitch}" Margin="0,14,0,0"
-                              Content="Démarrer le serveur automatiquement à l'ouverture de l'application"
-                              Click="Options_Changed" />
                     <TextBlock Style="{StaticResource MutedText}" Margin="0,12,0,0"
-                               Text="Avec ces deux options, ton serveur redémarre tout seul même après un redémarrage du PC." />
+                               Text="Avec « Démarrer le serveur automatiquement » (rubrique Lancement), ton serveur redémarre tout seul même après un redémarrage du PC." />
                 </StackPanel>
             </Border>
 
-            <!-- ===== Zone de notification ===== -->
-            <Border Style="{StaticResource Card}" Margin="0,20,0,0">
+            <!-- ===== Zone de notification (Application) ===== -->
+            <Border x:Name="TrayCard" Style="{StaticResource Card}" Margin="0,20,0,0">
                 <StackPanel>
                     <TextBlock Text="ZONE DE NOTIFICATION" Style="{StaticResource SectionTitle}" />
                     <CheckBox x:Name="CloseToTrayToggle" Style="{StaticResource ToggleSwitch}" Margin="0,18,0,0"
@@ -72,35 +73,6 @@
                               Click="Options_Changed" />
                     <TextBlock Style="{StaticResource MutedText}" Margin="0,12,0,0"
                                Text="L'application continue alors de surveiller le serveur (crash, redémarrages, mises à jour). Pour la quitter vraiment : clic droit sur son icône près de l'horloge, puis « Quitter »." />
-                </StackPanel>
-            </Border>
-
-            <!-- ===== Mises à jour ===== -->
-            <Border Style="{StaticResource Card}" Margin="0,20,0,0">
-                <StackPanel>
-                    <TextBlock Text="MISES À JOUR DU SERVEUR" Style="{StaticResource SectionTitle}" />
-
-                    <TextBlock Text="Version de DayZ" Style="{StaticResource MutedText}" Margin="0,16,0,8" />
-                    <WrapPanel>
-                        <RadioButton x:Name="StableChip" Content="Stable" GroupName="branch" Style="{StaticResource ChipButton}"
-                                     Click="Branch_Click" />
-                        <RadioButton x:Name="ExperimentalChip" Content="Expérimentale" GroupName="branch"
-                                     Style="{StaticResource ChipButton}" Click="Branch_Click" />
-                    </WrapPanel>
-                    <TextBlock x:Name="BranchInfo" Style="{StaticResource MutedText}" Margin="0,10,0,0" />
-
-                    <CheckBox x:Name="AutoUpdateServerToggle" Style="{StaticResource ToggleSwitch}" Margin="0,20,0,0"
-                              Content="Mettre à jour le serveur DayZ automatiquement" Click="Options_Changed" />
-                    <TextBlock Style="{StaticResource MutedText}" Margin="0,6,0,0"
-                               Text="À chaque démarrage du serveur, et toutes les 30 minutes une vérification : si Bohemia sort une mise à jour, les joueurs sont prévenus et le serveur redémarre 5 minutes plus tard pour l'installer." />
-
-                    <CheckBox x:Name="AutoUpdateModsToggle" Style="{StaticResource ToggleSwitch}" Margin="0,16,0,0"
-                              Content="Mettre à jour les mods automatiquement à chaque démarrage du serveur" Click="Options_Changed" />
-                    <TextBlock Style="{StaticResource MutedText}" Margin="0,6,0,0"
-                               Text="Seuls les mods qui ont changé sont recopiés, pour que le démarrage reste rapide." />
-
-                    <TextBlock Style="{StaticResource MutedText}" Foreground="{StaticResource WarnBrush}" Margin="0,14,0,0"
-                               Text="Les mises à jour automatiques réutilisent ta connexion Steam enregistrée : fais au moins une installation ou une installation de mod en te connectant, pour que SteamCMD la retienne." />
                 </StackPanel>
             </Border>
 

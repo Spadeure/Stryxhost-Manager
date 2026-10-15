@@ -25,6 +25,7 @@ public partial class MainWindow : Window
     private readonly EconomyPage _economyPage;
     private readonly XmlEditorPage _xmlEditorPage;
     private readonly LootPage _lootPage;
+    private readonly SettingsHubPage _settingsHub;
     private readonly TrayIcon _tray;
     private bool _exitRequested;
     private bool _trayHintShown;
@@ -51,12 +52,12 @@ public partial class MainWindow : Window
         _economyPage = new EconomyPage();
         _xmlEditorPage = new XmlEditorPage();
         _lootPage = new LootPage();
+        _settingsHub = new SettingsHubPage(_configPage, _settingsPage, _updatePage, _firewallPage, _installPage);
         _economyPage.EditRequested += OpenXmlEditor;
 
         // Le tableau de bord et les paramètres peuvent ouvrir d'autres pages.
         _serverPage.NavigateRequested += Navigate;
         _serverPage.BadgesChanged += UpdateBadges;
-        _settingsPage.InstallRequested += () => Navigate("install");
         _updatePage.LatestVersionChanged += version => _serverPage.SetUpdateAvailable(version);
 
         // Icône près de l'horloge, et démarrage réduit quand Windows lance l'application.
@@ -79,7 +80,9 @@ public partial class MainWindow : Window
         }
         else
         {
-            ShowPage("install");
+            _settingsHub.Select("install");
+            SettingsNav.IsChecked = true;
+            ShowPage("settings");
         }
 
         Loaded += async (_, _) =>
@@ -105,6 +108,16 @@ public partial class MainWindow : Window
     /// <summary>Ouvre une page (depuis le tableau de bord, les paramètres…), en cochant son onglet s'il en a un.</summary>
     public void Navigate(string tag)
     {
+        // Pages rangées dans ⚙ Paramètres : on ouvre l'onglet sur la bonne rubrique.
+        var sub = SettingsSubFor(tag);
+        if (sub != null)
+        {
+            if (sub.Length > 0) _settingsHub.Select(sub);
+            if (SettingsNav.IsChecked == true) ShowPage("settings");
+            else SettingsNav.IsChecked = true;
+            return;
+        }
+
         var item = NavPanel.Children.OfType<RadioButton>().FirstOrDefault(r => (string)r.Tag == tag);
         if (item != null)
         {
@@ -118,34 +131,47 @@ public partial class MainWindow : Window
         ShowPage(tag);
     }
 
+    /// <summary>Rubrique des Paramètres d'une ancienne page ("" = la rubrique déjà ouverte, null = pas dans les Paramètres).</summary>
+    private static string? SettingsSubFor(string tag) => tag switch
+    {
+        "settings" => "",
+        "config" => "serveur",
+        "launch" => "lancement",
+        "updates" => "majs",
+        "firewall" => "parefeu",
+        "install" => "install",
+        "app" => "appli",
+        _ => null,
+    };
+
     private void ShowPage(string tag)
     {
+        var sub = SettingsSubFor(tag);
+        if (sub != null)
+        {
+            if (sub.Length > 0) _settingsHub.Select(sub);
+            tag = "settings";
+        }
+
         PageHost.Content = tag switch
         {
-            "dashboard" => _serverPage,
-            "config" => _configPage,
             "mods" => _modsPage,
-            "firewall" => _firewallPage,
             "backups" => _backupsPage,
             "players" => _playersPage,
-            "settings" => _settingsPage,
+            "settings" => _settingsHub,
             "economy" => _economyPage,
             "xml" => _xmlEditorPage,
             "loot" => _lootPage,
             "logs" => _logsPage,
-            "updates" => _updatePage,
-            _ => _installPage,
+            _ => _serverPage,
         };
 
-        if (tag == "install") _installPage.Refresh();
-        if (tag == "firewall") _ = _firewallPage.RefreshAsync();
         if (tag == "dashboard") _serverPage.Refresh();
-        if (tag == "config") _configPage.Load();
         if (tag == "mods") _modsPage.Refresh();
         if (tag == "backups") _backupsPage.Refresh();
         if (tag == "logs") _logsPage.Refresh();
         if (tag == "players") _playersPage.Refresh();
-        if (tag == "settings") _settingsPage.Refresh();
+        if (tag == "settings") _settingsHub.Refresh();
         if (tag == "economy") _economyPage.Refresh();
         if (tag == "xml") _xmlEditorPage.Refresh();
         if (tag == "loot") _lootPage.Refresh();
@@ -297,6 +323,9 @@ public partial class MainWindow : Window
     {
         _updateAvailable = available;
         UpdateVersionButton();
+        if (_settingsHub == null) return; // appelé une première fois avant la création des pages
+        Themes.NavProps.SetBadge(SettingsNav, available ? "1" : "");
+        _settingsHub.SetUpdateBadge(available);
     }
 
     private void UpdateVersionButton()
@@ -333,6 +362,7 @@ public partial class MainWindow : Window
         CollapseButton.ToolTip = compact ? "Agrandir le menu" : "Réduire le menu";
         CollapseIcon.Data = Geometry.Parse(compact ? "M6 3L11 8L6 13" : "M10 3L5 8L10 13");
 
+        Themes.NavProps.SetCompact(SettingsNav, compact);
         foreach (var child in NavPanel.Children)
         {
             if (child is RadioButton item) Themes.NavProps.SetCompact(item, compact);

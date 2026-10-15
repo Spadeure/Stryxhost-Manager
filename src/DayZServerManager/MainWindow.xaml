@@ -64,7 +64,7 @@
                         BorderBrush="{StaticResource LineBrush}" BorderThickness="0,0,1,0" Padding="10,14">
                     <DockPanel>
                         <!-- Version : s'allume quand une mise à jour est disponible -->
-                        <Button x:Name="VersionButton" DockPanel.Dock="Bottom" Style="{StaticResource VersionButton}"
+                        <Button x:Name="VersionButton" DockPanel.Dock="Bottom" Margin="0,4,0,0" Style="{StaticResource VersionButton}"
                                 ToolTip="Mises à jour de l'application" Click="Version_Click">
                             <StackPanel>
                                 <TextBlock x:Name="VersionText" FontSize="12" Foreground="{StaticResource MutedBrush}" />
@@ -72,6 +72,14 @@
                                            Foreground="{StaticResource CyanBrush}" />
                             </StackPanel>
                         </Button>
+
+                        <!-- ⚙ Paramètres : tout ce qui se règle une fois -->
+                        <Border DockPanel.Dock="Bottom" BorderBrush="{StaticResource LineBrush}" BorderThickness="0,1,0,0"
+                                Padding="0,10,0,0">
+                            <RadioButton x:Name="SettingsNav" Style="{StaticResource NavButton}" Content="Paramètres" Tag="settings"
+                                         Checked="Nav_Checked"
+                                         nav:NavProps.Icon="M12 15a3 3 0 1 0 0-6a3 3 0 0 0 0 6z M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33a1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                        </Border>
 
                         <!-- Bouton pour réduire / agrandir le menu -->
                         <DockPanel DockPanel.Dock="Top" Margin="0,0,0,4">
@@ -95,6 +103,9 @@
                                 <RadioButton Style="{StaticResource NavButton}" Content="Journaux" Tag="logs"
                                              Checked="Nav_Checked" nav:NavProps.Icon="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M8 13h8M8 17h8" />
 
+                                <RadioButton Style="{StaticResource NavButton}" Content="Sauvegardes" Tag="backups"
+                                             Checked="Nav_Checked" nav:NavProps.Icon="M21 8v13H3V8M1 3h22v5H1zM10 12h4" />
+
                                 <TextBlock Style="{StaticResource NavHeader}" Text="CONTENU" />
                                 <RadioButton Style="{StaticResource NavButton}" Content="Mods" Tag="mods"
                                              Checked="Nav_Checked" nav:NavProps.Icon="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16zM3.3 7L12 12L20.7 7M12 22V12" />
@@ -104,16 +115,6 @@
                                              Checked="Nav_Checked" nav:NavProps.Icon="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
                                 <RadioButton x:Name="XmlNav" Style="{StaticResource NavButton}" Content="Éditeur XML" Tag="xml"
                                              Checked="Nav_Checked" nav:NavProps.Icon="M16 18l6-6l-6-6M8 6l-6 6l6 6" />
-
-                                <TextBlock Style="{StaticResource NavHeader}" Text="RÉGLAGES" />
-                                <RadioButton Style="{StaticResource NavButton}" Content="Configuration" Tag="config"
-                                             Checked="Nav_Checked" nav:NavProps.Icon="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6" />
-                                <RadioButton Style="{StaticResource NavButton}" Content="Pare-feu" Tag="firewall"
-                                             Checked="Nav_Checked" nav:NavProps.Icon="M12 22C12 22 20 18 20 12V5L12 2L4 5V12C4 18 12 22 12 22z" />
-                                <RadioButton Style="{StaticResource NavButton}" Content="Sauvegardes" Tag="backups"
-                                             Checked="Nav_Checked" nav:NavProps.Icon="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5l5-5M12 15V3" />
-                                <RadioButton Style="{StaticResource NavButton}" Content="Paramètres" Tag="settings"
-                                             Checked="Nav_Checked" nav:NavProps.Icon="M12 15a3 3 0 1 0 0-6a3 3 0 1 0 0 6zM12 2v3M12 19v3M4.9 4.9l2.1 2.1M16.9 16.9l2.1 2.1M2 12h3M19 12h3M4.9 19.1l2.1-2.1M16.9 7.1l2.1-2.1" />
                             </StackPanel>
                         </ScrollViewer>
                     </DockPanel>

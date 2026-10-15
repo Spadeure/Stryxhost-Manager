@@ -1,0 +1,107 @@
+<UserControl x:Class="DayZServerManager.Views.SettingsHubPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:nav="clr-namespace:DayZServerManager.Themes"
+             SizeChanged="Hub_SizeChanged">
+    <UserControl.Resources>
+        <!-- Rubrique des paramètres : icône, titre et petite description -->
+        <Style x:Key="SubNav" TargetType="RadioButton">
+            <Setter Property="Foreground" Value="{StaticResource MutedBrush}" />
+            <Setter Property="FontSize" Value="13.5" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Margin" Value="0,0,0,4" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="GroupName" Value="settingsSub" />
+            <Setter Property="ToolTip" Value="{Binding Content, RelativeSource={RelativeSource Self}}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="Bd" Background="Transparent" BorderBrush="Transparent" BorderThickness="1"
+                                CornerRadius="10" Padding="12,10">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Viewbox x:Name="IconBox" Width="18" Height="18" VerticalAlignment="Top" Margin="0,1,0,0">
+                                    <Canvas Width="24" Height="24">
+                                        <Path x:Name="Icon" StrokeThickness="1.8" StrokeStartLineCap="Round"
+                                              StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                                              Data="{Binding Path=(nav:NavProps.Icon), RelativeSource={RelativeSource TemplatedParent}}"
+                                              Stroke="{Binding Foreground, RelativeSource={RelativeSource TemplatedParent}}" />
+                                    </Canvas>
+                                </Viewbox>
+                                <StackPanel x:Name="Texts" Grid.Column="1" Margin="12,0,0,0">
+                                    <ContentPresenter />
+                                    <TextBlock Text="{Binding Path=(nav:NavProps.Description), RelativeSource={RelativeSource TemplatedParent}}"
+                                               FontSize="11.5" FontWeight="Normal" Foreground="#7D7699" TextWrapping="Wrap"
+                                               Margin="0,2,0,0" />
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{StaticResource HoverBrush}" />
+                                <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{StaticResource AccentSoftBrush}" />
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+                                <Setter TargetName="Icon" Property="Stroke" Value="{StaticResource AccentBrush}" />
+                                <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+                            </Trigger>
+                            <Trigger Property="nav:NavProps.Compact" Value="True">
+                                <Setter TargetName="Texts" Property="Visibility" Value="Collapsed" />
+                                <Setter TargetName="Bd" Property="Padding" Value="0,11" />
+                                <Setter TargetName="IconBox" Property="HorizontalAlignment" Value="Center" />
+                                <Setter TargetName="IconBox" Property="Margin" Value="0" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition x:Name="SubColumn" Width="236" />
+            <ColumnDefinition x:Name="GapColumn" Width="28" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- ===== Rubriques ===== -->
+        <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <StackPanel>
+                <StackPanel x:Name="HubTitle" Margin="0,0,0,18">
+                    <TextBlock Text="PARAMÈTRES" Style="{StaticResource PageTitle}" />
+                    <TextBlock Text="Tout ce qui se règle une fois." FontSize="13" TextWrapping="Wrap"
+                               Foreground="{StaticResource MutedBrush}" Margin="0,6,0,0" />
+                </StackPanel>
+                <StackPanel x:Name="SubPanel">
+                    <RadioButton Style="{StaticResource SubNav}" Content="Serveur" Tag="serveur" Checked="Sub_Checked"
+                                 nav:NavProps.Description="Nom, mots de passe, carte, règles du jeu, Discord"
+                                 nav:NavProps.Icon="M2 4h20v6H2zM2 14h20v6H2zM6 7h.01M6 17h.01" />
+                    <RadioButton Style="{StaticResource SubNav}" Content="Lancement" Tag="lancement" Checked="Sub_Checked"
+                                 nav:NavProps.Description="Redémarrages, paramètres de lancement"
+                                 nav:NavProps.Icon="M23 4v6h-6M1 20v-6h6M3.5 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.5 15" />
+                    <RadioButton x:Name="UpdatesSub" Style="{StaticResource SubNav}" Content="Mises à jour" Tag="majs" Checked="Sub_Checked"
+                                 nav:NavProps.Description="Serveur DayZ et application"
+                                 nav:NavProps.Icon="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5l5-5M12 15V3" />
+                    <RadioButton Style="{StaticResource SubNav}" Content="Pare-feu" Tag="parefeu" Checked="Sub_Checked"
+                                 nav:NavProps.Description="Ports ouverts dans Windows"
+                                 nav:NavProps.Icon="M12 22C12 22 20 18 20 12V5L12 2L4 5V12C4 18 12 22 12 22z" />
+                    <RadioButton Style="{StaticResource SubNav}" Content="Installation" Tag="install" Checked="Sub_Checked"
+                                 nav:NavProps.Description="Dossier, SteamCMD, composants Windows"
+                                 nav:NavProps.Icon="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+                    <RadioButton Style="{StaticResource SubNav}" Content="Application" Tag="appli" Checked="Sub_Checked"
+                                 nav:NavProps.Description="Langue, démarrage, notifications"
+                                 nav:NavProps.Icon="M12 22a10 10 0 1 0 0-20a10 10 0 0 0 0 20zM2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20" />
+                </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- ===== Rubrique ouverte ===== -->
+        <ContentControl x:Name="SubHost" Grid.Column="2" />
+    </Grid>
+</UserControl>

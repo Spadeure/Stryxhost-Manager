@@ -32,4 +32,11 @@ public static class NavProps
 
     public static bool GetCompact(DependencyObject obj) => (bool)obj.GetValue(CompactProperty);
     public static void SetCompact(DependencyObject obj, bool value) => obj.SetValue(CompactProperty, value);
+
+    /// <summary>Petite description sous le titre (rubriques des Paramètres).</summary>
+    public static readonly DependencyProperty DescriptionProperty = DependencyProperty.RegisterAttached(
+        "Description", typeof(string), typeof(NavProps), new FrameworkPropertyMetadata(""));
+
+    public static string GetDescription(DependencyObject obj) => (string)obj.GetValue(DescriptionProperty);
+    public static void SetDescription(DependencyObject obj, string value) => obj.SetValue(DescriptionProperty, value);
 }

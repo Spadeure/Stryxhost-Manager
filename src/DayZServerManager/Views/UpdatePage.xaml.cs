@@ -22,6 +22,58 @@ public partial class UpdatePage : UserControl
         var current = UpdateService.CurrentVersion;
         CurrentText.Text = current.ToString(3);
         CurrentKind.Text = current.Major == 0 ? "Version de test" : "Version officielle";
+        RefreshServerOptions();
+    }
+
+    // ===== Mises à jour du serveur DayZ =====
+
+    private bool _serverReady;
+
+    /// <summary>Relit les options de mise à jour du serveur (appelé à chaque ouverture de la rubrique).</summary>
+    public void RefreshServerOptions()
+    {
+        _serverReady = false;
+        var settings = AppSettings.Current;
+        AutoUpdateServerToggle.IsChecked = settings.AutoUpdateServer;
+        AutoUpdateModsToggle.IsChecked = settings.AutoUpdateMods;
+        StableChip.IsChecked = settings.ServerBranch != "experimental";
+        ExperimentalChip.IsChecked = settings.ServerBranch == "experimental";
+        UpdateBranchInfo();
+        _serverReady = true;
+    }
+
+    private void ServerOptions_Changed(object sender, RoutedEventArgs e)
+    {
+        if (!_serverReady) return;
+        var settings = AppSettings.Current;
+        settings.AutoUpdateServer = AutoUpdateServerToggle.IsChecked == true;
+        settings.AutoUpdateMods = AutoUpdateModsToggle.IsChecked == true;
+        settings.Save();
+        ShowServerStatus("Enregistré.", "CyanBrush");
+    }
+
+    private void Branch_Click(object sender, RoutedEventArgs e)
+    {
+        if (!_serverReady) return;
+        var branch = ExperimentalChip.IsChecked == true ? "experimental" : "stable";
+        if (branch == AppSettings.Current.ServerBranch) return;
+        AppSettings.Current.ServerBranch = branch;
+        AppSettings.Current.Save();
+        UpdateBranchInfo();
+        ShowServerStatus("Version changée : va dans la rubrique « Installation » puis clique sur « Mettre à jour le serveur » pour télécharger cette version.", "CyanBrush");
+    }
+
+    private void UpdateBranchInfo()
+    {
+        BranchInfo.Text = AppSettings.Current.ServerBranch == "experimental"
+            ? "Expérimentale : la future version de DayZ, en test. Les joueurs doivent aussi utiliser DayZ Experimental, et beaucoup de mods ne sont pas compatibles."
+            : "Stable : la version normale de DayZ, celle de tous les joueurs. Recommandée.";
+    }
+
+    private void ShowServerStatus(string message, string brushKey)
+    {
+        ServerStatusText.Text = message;
+        ServerStatusText.Foreground = Res(brushKey);
     }
 
     public async Task CheckAsync()

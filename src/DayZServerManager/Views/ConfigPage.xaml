@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
         <StackPanel Margin="0,0,8,0">
-            <TextBlock Text="CONFIGURATION" Style="{StaticResource PageTitle}" />
+            <TextBlock Text="SERVEUR" Style="{StaticResource PageTitle}" />
             <TextBlock Text="Les réglages principaux du fichier serverDZ.cfg, sans ouvrir le fichier." FontSize="14"
                        Foreground="{StaticResource MutedBrush}" Margin="0,6,0,0" />
 

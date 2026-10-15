@@ -7,14 +7,36 @@ namespace DayZServerManager.Views;
 
 public partial class SettingsPage : UserControl
 {
-    /// <summary>Demande à la fenêtre principale d'ouvrir l'assistant d'installation.</summary>
-    public event Action? InstallRequested;
-
     private bool _ready;
 
     public SettingsPage()
     {
         InitializeComponent();
+        LoadOptions();
+        ShowSection("launch");
+    }
+
+    /// <summary>
+    /// Cette page sert deux rubriques des Paramètres :
+    /// « launch » (redémarrages et lancement) et « app » (langue, démarrage avec Windows, zone de notification).
+    /// </summary>
+    public void ShowSection(string section)
+    {
+        bool app = section == "app";
+        TitleText.Text = app ? "APPLICATION" : "LANCEMENT";
+        SubtitleText.Text = app
+            ? "La langue de Stryxhost Manager, son lancement avec Windows et la zone de notification."
+            : "Redémarrages automatiques du serveur et ligne de commande de lancement.";
+        RestartCard.Visibility = app ? Visibility.Collapsed : Visibility.Visible;
+        LanguageCard.Visibility = app ? Visibility.Visible : Visibility.Collapsed;
+        StartupCard.Visibility = app ? Visibility.Visible : Visibility.Collapsed;
+        TrayCard.Visibility = app ? Visibility.Visible : Visibility.Collapsed;
+        StatusText.Text = "";
+    }
+
+    private void LoadOptions()
+    {
+        _ready = false;
         var settings = AppSettings.Current;
         AutoRestartToggle.IsChecked = settings.AutoRestart;
         ScheduledToggle.IsChecked = settings.ScheduledRestart;
@@ -22,22 +44,13 @@ public partial class SettingsPage : UserControl
         HoursBox.Text = settings.RestartHours.ToString();
         AutoStartServerToggle.IsChecked = settings.AutoStartServer;
         CloseToTrayToggle.IsChecked = settings.CloseToTray;
-        AutoUpdateServerToggle.IsChecked = settings.AutoUpdateServer;
-        AutoUpdateModsToggle.IsChecked = settings.AutoUpdateMods;
-        StableChip.IsChecked = settings.ServerBranch != "experimental";
-        ExperimentalChip.IsChecked = settings.ServerBranch == "experimental";
-        UpdateBranchInfo();
         _ready = true;
     }
 
     /// <summary>Relit l'état réel (appelé à chaque ouverture de l'onglet).</summary>
     public void Refresh()
     {
-        var folder = AppSettings.Current.ServerFolder;
-        InstallInfo.Text = DependencyChecker.IsServerInstalled(folder)
-            ? $"Serveur installé dans {folder}. Change de dossier, réinstalle les dépendances ou mets à jour le serveur."
-            : "Le serveur n'est pas encore installé : l'assistant te guide en quatre étapes.";
-
+        LoadOptions();
         try { StartWithWindowsToggle.IsChecked = StartupService.IsEnabled(); }
         catch { StartWithWindowsToggle.IsChecked = false; }
     }
@@ -64,8 +77,6 @@ public partial class SettingsPage : UserControl
         }
     }
 
-    private void Install_Click(object sender, RoutedEventArgs e) => InstallRequested?.Invoke();
-
     private void LaunchSettings_Click(object sender, RoutedEventArgs e)
     {
         var window = new LaunchWindow { Owner = Window.GetWindow(this) };
@@ -88,27 +99,8 @@ public partial class SettingsPage : UserControl
             HoursBox.Text = settings.RestartHours.ToString();
         settings.AutoStartServer = AutoStartServerToggle.IsChecked == true;
         settings.CloseToTray = CloseToTrayToggle.IsChecked == true;
-        settings.AutoUpdateServer = AutoUpdateServerToggle.IsChecked == true;
-        settings.AutoUpdateMods = AutoUpdateModsToggle.IsChecked == true;
         settings.Save();
         ShowStatus("Enregistré.", "CyanBrush");
-    }
-
-    private void Branch_Click(object sender, RoutedEventArgs e)
-    {
-        var branch = ExperimentalChip.IsChecked == true ? "experimental" : "stable";
-        if (branch == AppSettings.Current.ServerBranch) return;
-        AppSettings.Current.ServerBranch = branch;
-        AppSettings.Current.Save();
-        UpdateBranchInfo();
-        ShowStatus("Version changée : clique sur « Ouvrir l'installation » ci-dessus, puis « Mettre à jour le serveur », pour télécharger cette version.", "CyanBrush");
-    }
-
-    private void UpdateBranchInfo()
-    {
-        BranchInfo.Text = AppSettings.Current.ServerBranch == "experimental"
-            ? "Expérimentale : la future version de DayZ, en test. Les joueurs doivent aussi utiliser DayZ Experimental, et beaucoup de mods ne sont pas compatibles."
-            : "Stable : la version normale de DayZ, celle de tous les joueurs. Recommandée.";
     }
 
     private void ShowStatus(string message, string brushKey)
