@@ -10,6 +10,7 @@ namespace DayZServerManager.Views;
 
 public partial class ConfigPage : UserControl
 {
+    /// <summary>Cartes officielles toujours proposées (grisées si le serveur ne les a pas encore).</summary>
     private static readonly (string Name, string Template)[] Maps =
     [
         ("Chernarus", "dayzOffline.chernarusplus"),
@@ -28,7 +29,6 @@ public partial class ConfigPage : UserControl
 
     private static string ConfigPath => Path.Combine(ServerManager.ServerFolder, "serverDZ.cfg");
 
-    private RadioButton[] MapChips => [ChernarusChip, LivoniaChip, SakhalChip];
 
     /// <summary>Relit serverDZ.cfg (appelé à chaque ouverture de l'onglet).</summary>
     public void Load()
@@ -67,19 +67,74 @@ public partial class ConfigPage : UserControl
         NightAccelBox.Text = _config.Get("serverNightTimeAcceleration") ?? "1";
         RconPasswordBox.Text = BattlEyeConfig.ReadPassword();
 
-        // Carte : on ne propose que celles présentes dans le dossier mpmissions.
-        var template = _config.Get("template") ?? Maps[0].Template;
-        var available = new List<string>();
-        for (int i = 0; i < Maps.Length; i++)
+        BuildMaps(_config.Get("template") ?? Maps[0].Template);
+    }
+
+    /// <summary>
+    /// Cartes : les officielles, plus tous les dossiers trouvés dans mpmissions
+    /// (nouvelle carte comme Nasdara, missions d'événement, cartes moddées…).
+    /// </summary>
+    private void BuildMaps(string template)
+    {
+        MapsPanel.Children.Clear();
+        var missionsDir = Path.Combine(ServerManager.ServerFolder, "mpmissions");
+        var folders = Directory.Exists(missionsDir)
+            ? Directory.GetDirectories(missionsDir).Select(d => Path.GetFileName(d)).OrderBy(n => n, StringComparer.OrdinalIgnoreCase).ToList()
+            : new List<string>();
+        var used = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        void AddChip(string label, string? folder, string? tooltip = null)
         {
-            bool exists = Directory.Exists(Path.Combine(ServerManager.ServerFolder, "mpmissions", Maps[i].Template));
-            MapChips[i].IsEnabled = exists;
-            MapChips[i].IsChecked = string.Equals(template, Maps[i].Template, StringComparison.OrdinalIgnoreCase);
-            if (exists) available.Add(Maps[i].Name);
+            var chip = new RadioButton
+            {
+                Content = label,
+                GroupName = "map",
+                Tag = folder,
+                Style = (Style)FindResource("ChipButton"),
+                IsEnabled = folder != null,
+                IsChecked = folder != null && string.Equals(folder, template, StringComparison.OrdinalIgnoreCase),
+                ToolTip = tooltip ?? folder,
+            };
+            ToolTipService.SetShowOnDisabled(chip, true);
+            MapsPanel.Children.Add(chip);
+            if (folder != null) used.Add(folder);
         }
-        MapInfo.Text = MapChips.Any(c => c.IsChecked == true)
-            ? $"Cartes disponibles sur ce serveur : {string.Join(", ", available)}."
-            : $"Carte personnalisée : {template} (choisis une carte ci-dessus pour la remplacer).";
+
+        foreach (var (name, tpl) in Maps)
+        {
+            var folder = folders.FirstOrDefault(f => string.Equals(f, tpl, StringComparison.OrdinalIgnoreCase));
+            AddChip(name, folder, folder == null ? "Cette carte n'est pas dans le dossier mpmissions du serveur." : null);
+        }
+
+        // Nasdara (Badlands, mise à jour 1.30) : on prend le dossier fourni par le serveur, quel que soit son nom exact.
+        var nasdara = folders.FirstOrDefault(f => !used.Contains(f) && BackupService.IsNasdara(f) &&
+                                                  f.StartsWith("dayzOffline", StringComparison.OrdinalIgnoreCase))
+                      ?? folders.FirstOrDefault(f => !used.Contains(f) && BackupService.IsNasdara(f));
+        AddChip("Nasdara", nasdara, nasdara == null
+            ? "Nouvelle carte de l'extension Badlands. Mets à jour le serveur (onglet Paramètres) pour la recevoir."
+            : null);
+
+        // Tous les autres dossiers : missions d'événement, cartes moddées…
+        foreach (var folder in folders.Where(f => !used.Contains(f)))
+            AddChip(FriendlyName(folder), folder);
+
+        // Carte réglée dans serverDZ.cfg mais dont le dossier n'existe pas.
+        bool selected = MapsPanel.Children.OfType<RadioButton>().Any(c => c.IsChecked == true);
+        MapInfo.Text = selected
+            ? "Survole une carte pour voir son dossier. Les cartes grisées ne sont pas encore sur ton serveur."
+            : $"La carte réglée ({template}) est introuvable dans mpmissions. Choisis une carte ci-dessus.";
+        MapInfo.Foreground = Res(selected ? "MutedBrush" : "WarnBrush");
+    }
+
+    /// <summary>« halloweenOffline.chernarusplus » → « Chernarus · halloweenOffline ».</summary>
+    private static string FriendlyName(string folder)
+    {
+        var map = BackupService.MapName(folder);
+        var dot = folder.IndexOf('.');
+        var prefix = dot > 0 ? folder[..dot] : "";
+        return prefix.Length == 0 || prefix.Equals("dayzOffline", StringComparison.OrdinalIgnoreCase)
+            ? map
+            : $"{map} · {prefix}";
     }
 
     private void Save_Click(object sender, RoutedEventArgs e)
@@ -121,8 +176,8 @@ public partial class ConfigPage : UserControl
             _config.SetNumber("serverNightTimeAcceleration", nightAccel);
             _config.SetNumber("steamQueryPort", AppSettings.Current.QueryPort);
 
-            for (int i = 0; i < Maps.Length; i++)
-                if (MapChips[i].IsChecked == true) _config.SetString("template", Maps[i].Template);
+            var chosen = MapsPanel.Children.OfType<RadioButton>().FirstOrDefault(c => c.IsChecked == true);
+            if (chosen?.Tag is string folder) _config.SetString("template", folder);
 
             _config.Save();
             var rconPassword = RconPasswordBox.Text.Trim();
@@ -188,6 +243,8 @@ public partial class ConfigPage : UserControl
     private static bool TryReadNumber(string text, double min, double max, out double value) =>
         double.TryParse(text.Trim().Replace(',', '.'), NumberStyles.Float, CultureInfo.InvariantCulture, out value)
         && value >= min && value <= max;
+
+    private static Brush Res(string key) => (Brush)Application.Current.FindResource(key);
 
     private void ShowStatus(string message, string brushKey)
     {

@@ -46,9 +46,15 @@ public static class BackupService
             "chernarusplus" => "Chernarus",
             "enoch" => "Livonia",
             "sakhal" => "Sakhal",
+            _ when IsNasdara(name) => "Nasdara",
             _ => name,
         };
     }
+
+    /// <summary>Nouvelle carte de l'extension Badlands (nom de dossier pas encore connu avec certitude).</summary>
+    public static bool IsNasdara(string folder) =>
+        folder.Contains("nasdara", StringComparison.OrdinalIgnoreCase) ||
+        folder.Contains("badlands", StringComparison.OrdinalIgnoreCase);
 
     /// <summary>Crée une sauvegarde. Renvoie null s'il n'y a encore rien à sauvegarder.</summary>
     public static BackupInfo? Create(string reason)
